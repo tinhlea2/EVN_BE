@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import datetime
 from pathlib import Path
 import os
-from . import env, BASE_DIR
+from . import env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -46,15 +46,12 @@ DJANGO_APPS = (
 
 THIRD_PARTY_APPS = (
     "drf_yasg",
-    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "rest_framework",
-    "rest_framework_simplejwt",
+    "django_filters",
+    "after_response",
 )
-LOCAL_APPS = (
-    "api",
-    "api_news"
-)
+LOCAL_APPS = ("api", "api_news")
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -91,7 +88,6 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 # Custom user model
 # AUTH_USER_MODEL = "api_users.User"
-DB_NAME = "EVN"
 
 
 # Database
@@ -118,18 +114,19 @@ def db_config(prefix="", test=None):
 
 
 DATABASES = {
-    "default": db_config(),
-    "tests": db_config("", {"MIRROR": "default"}),
-    # REPLICATION_DB_ALIAS: db_config(REPLICATION_PREFIX),
+    'default': {
+        'ENGINE': "django.db.backends.sqlite3",
+        'NAME': os.path.join(BASE_DIR, "db.sqlite3"),
+    }
 }
 
 REST_FRAMEWORK = {
-    "NON_FIELD_ERRORS_KEY": "error",
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 50,
+    "PAGE_SIZE": 10,
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 ALLOWED_SWAGGER = env("ALLOWED_SWAGGER")
@@ -138,11 +135,6 @@ SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
     }
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=1),
 }
 
 # Password validation
@@ -190,12 +182,3 @@ MEDIA_URL = "/media/"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-FRONTEND_HOST = env("FRONTEND_HOST")
-
-EMAIL_BACKEND = env("EMAIL_BACKEND")
-EMAIL_USE_TLS = env("EMAIL_USE_TLS")
-EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_POST = env("EMAIL_POST")
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")

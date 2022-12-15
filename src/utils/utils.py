@@ -22,3 +22,8 @@ class Util:
         )
         # EmailThread(email).start()
         email.send()
+
+    @staticmethod
+    def remove_space(string):
+        string = string.replace("\xa0", " ").strip()
+        return string
